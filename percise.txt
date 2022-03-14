@@ -1,0 +1,7 @@
+Nlen,3
+dx,0.0025
+dy,0.0025
+dvm_bg,-6.25
+dvm_st,0.5
+save_max,16
+save_interval,0.02

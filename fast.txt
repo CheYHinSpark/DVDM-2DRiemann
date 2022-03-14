@@ -1,0 +1,4 @@
+Nlen,1
+dx,0.01
+dy,0.01
+save_max,31

@@ -1,0 +1,13 @@
+Nlen,24
+dx,0.01
+dy,0.01
+CFLMax,0.5
+save_max,26
+save_interval,0.01
+flag_collide,1
+kappa,0
+dvm_bg,-18
+dvm_st,1
+REDEQUIL_ERROR,1e-8
+SCHEME,DUGKS
+dvm_strategy,sqrt-symmetric

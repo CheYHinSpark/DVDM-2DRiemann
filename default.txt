@@ -1,0 +1,11 @@
+Nlen,2
+dx,0.005
+dy,0.005
+CFLMax,0.5
+save_max,31
+save_interval,0.01
+flag_collide,1
+kappa,0
+dvm_bg,-6.25
+dvm_st,0.5
+REDEQUIL_ERROR,5e-8

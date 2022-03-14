@@ -1,0 +1,12 @@
+Nlen,3
+dx,0.005
+dy,0.005
+CFLMax,0.5
+save_max,26
+save_interval,0.01
+flag_collide,0
+kappa,999
+dvm_bg,-8.1
+dvm_st,0.2
+REDEQUIL_ERROR,1e-8
+SCHEME_MODE,Lax-Wendroff
