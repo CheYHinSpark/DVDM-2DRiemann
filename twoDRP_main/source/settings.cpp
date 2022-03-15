@@ -56,13 +56,13 @@ extern int step_count = -1;    // 从-1开始
 extern double REDEQUIL_ERROR = 5e-8;
 
 // 差分格式
-extern std::string SCHEME = "wind-up";
+extern std::string SCHEME = "DUGKS";
 // 离散点选取方法
 extern std::string dvm_strategy = "common-difference";
 
 
 // 保存用的数组
-extern int save_max = 31;            // 最大储存，这里可以存到0.5秒的结果
+extern int save_max = 26;            // 最大储存次数
 extern double save_interval = 0.01;  // 每隔0.01秒储存一次
 extern int Save_Count = 1;
 

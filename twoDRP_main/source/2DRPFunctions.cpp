@@ -105,3 +105,57 @@ void CSVWriteMatrix(string filename, double* varray, int Y, int X)
 	}
 	outFile.close();
 }
+
+string ReadSettings(string csv_name, string default_name)
+{
+	string* nlist = new string[40]{};
+	string* vlist = new string[40]{};
+	if (CSVRead(csv_name, 40, nlist, vlist))
+	{
+		for (int i = 0;i < 40;++i)
+		{
+			string n = nlist[i];
+			string v_str = vlist[i];
+			double v_dbl = atof(v_str.c_str());
+			// 初始设置
+			if (n == "r00") { r_init[0][0] = v_dbl; }
+			if (n == "r10") { r_init[1][0] = v_dbl; }
+			if (n == "r01") { r_init[0][1] = v_dbl; }
+			if (n == "r11") { r_init[1][1] = v_dbl; }
+			if (n == "u00") { u_init[0][0] = v_dbl; }
+			if (n == "u10") { u_init[1][0] = v_dbl; }
+			if (n == "u01") { u_init[0][1] = v_dbl; }
+			if (n == "u11") { u_init[1][1] = v_dbl; }
+			if (n == "v00") { v_init[0][0] = v_dbl; }
+			if (n == "v10") { v_init[1][0] = v_dbl; }
+			if (n == "v01") { v_init[0][1] = v_dbl; }
+			if (n == "v11") { v_init[1][1] = v_dbl; }
+			if (n == "p00") { p_init[0][0] = v_dbl; }
+			if (n == "p10") { p_init[1][0] = v_dbl; }
+			if (n == "p01") { p_init[0][1] = v_dbl; }
+			if (n == "p11") { p_init[1][1] = v_dbl; }
+			// 计算参数
+			if (n == "Nlen") { N = (int)v_dbl; }
+			if (n == "dx") { dx = v_dbl; }
+			if (n == "dy") { dy = v_dbl; }
+			if (n == "flag_collide") { flag_collide = v_dbl; }
+			if (n == "kappa") { kappa = v_dbl; }
+			if (n == "save_interval") { save_interval = v_dbl; }
+			if (n == "save_max") { save_max = (int)v_dbl; }
+			if (n == "CFLMax") { CFLMax = v_dbl; }
+			if (n == "dvm_bg") { dvm_bg = v_dbl; }
+			if (n == "dvm_st") { dvm_st = v_dbl; }
+			if (n == "REDEQUIL_ERROR") { REDEQUIL_ERROR = v_dbl; }
+			if (n == "SCHEME") { SCHEME = v_str; }
+			if (n == "dvm_strategy") { dvm_strategy = v_str; }
+		}
+	}
+	else
+	{
+		cout << "将使用默认值" << endl;
+		csv_name = default_name;
+	}
+	delete[] nlist;
+	delete[] vlist;
+	return csv_name;
+}

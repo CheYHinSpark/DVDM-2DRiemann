@@ -9,6 +9,8 @@
 
 #include <time.h>
 
+#include "settings.h"
+
 using namespace std;
 
 // Ωªªª÷∏’Î
@@ -31,4 +33,5 @@ void CSVWriteArray(string filename, double* varray, int X);
 
 void CSVWriteMatrix(string filename, double* varray, int Y, int X);
 
+string ReadSettings(string csv_name, string default_name);
 #endif
