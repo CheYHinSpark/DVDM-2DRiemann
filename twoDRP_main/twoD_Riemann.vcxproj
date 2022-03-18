@@ -173,9 +173,8 @@
     <ClCompile Include="source\Scheme.cpp" />
     <ClCompile Include="source\settings.cpp" />
     <ClCompile Include="source\twoDRP_DVDDVM.cpp" />
-    <ClCompile Include="source\twoDRP_DVDDVM_gh.cpp" />
     <ClCompile Include="source\twoDRP_DVM.cpp" />
-    <ClCompile Include="source\twoDRP_DVM_gh.cpp" />
+    <ClCompile Include="source\twoDRP_DVDDVM_gh.cpp" />
     <ClCompile Include="source\twoDRP_EQMOM.cpp" />
   </ItemGroup>
   <ItemGroup>

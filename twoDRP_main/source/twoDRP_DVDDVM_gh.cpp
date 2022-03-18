@@ -1,8 +1,7 @@
 #include "../include/twoDRP.h"
 
-void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
+void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
 {
-
 #pragma region 初始化计算参数，创建需要的数组
     L = 1;
     D = 2;
@@ -13,14 +12,20 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
     SetDVM();
 
     // 以当前时间确定一个文件夹名
-    string foldername = "DVDDVM" + to_string(N) + "x" + to_string(M)
-        + init_setting + compute_setting + CurrentLocalTime() + SCHEME;
+    string foldername;
+    if (mode == 3)
+    {
+        foldername = "DVM" + to_string(N) + "x" + to_string(M)
+            + init_setting + compute_setting + CurrentLocalTime() + SCHEME;
+    }
+    else if (mode == 4)
+    {
+        foldername = "DVDDVM" + to_string(N) + "x" + to_string(M)
+            + init_setting + compute_setting + CurrentLocalTime() + SCHEME;
+    }
     string command;
     command = "mkdir " + foldername;
     system(command.c_str());
-
-    // 半隐式格式需要的系数
-    double tau_pre = kappa;
 
     // 差分网格尺寸
     int x_num = int(0.5 / dx);    //  x轴格点数的一半
@@ -30,11 +35,15 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
     // 创建各种数组
     SetUVW();
 
-    MF.reConstruct(2 * x_num, 2 * y_num, 2, N, M);     //前一时刻数据(x，y，方向，dvm)
-    MF_c.reConstruct(2 * x_num, 2 * y_num, 2, N, M);   //复制数据(x，y，方向，dvm)
-    Meq.reConstruct(2 * x_num, 2 * y_num, 2, N, M);    //平衡态
-    CArray alpha(2 * x_num, 2 * y_num, 4);          //平衡态参数
-    macro.reConstruct(2 * x_num, 2 * y_num, 4);     //宏观量
+    MF.reConstruct(2 * x_num, 2 * y_num, 2, N, M);      //前一时刻数据(x，y，gh, 方向，dvm)
+    MF_c.reConstruct(2 * x_num, 2 * y_num, 2, N, M);    //复制数据(x，y，gh, 方向，dvm)
+    Meq.reConstruct(2 * x_num, 2 * y_num, 2, N, M);     //平衡态
+    CArray alpha(2 * x_num, 2 * y_num, 4);              //平衡态参数
+    macro.reConstruct(2 * x_num, 2 * y_num, 4);         //宏观量
+    if (flag_collide == 1 && kappa != 0)
+    {
+        MF_m.reConstruct(2 * x_num + 1, 2 * y_num + 1, 2, N, M);
+    }
 
     // 保存用的
     double* save_t = new double[save_max] {};
@@ -45,7 +54,15 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
     CArray save_e(2 * y_num, 2 * x_num);      // e
 #pragma endregion
 
-    cout << "计算方法DVDDVM_gh，方向数N=" << N << "，离散速度个数" << M << "，碰撞参数flag_collide=" << flag_collide <<
+    if (mode == 3)
+    {
+        cout << "计算方法DVM_gh，";
+    }
+    else if (mode == 4)
+    {
+        cout << "计算方法DVDDVM_gh，";
+    }
+    cout << "方向数N=" << N << "，离散速度个数" << M << "，碰撞参数flag_collide=" << flag_collide <<
         "，kappa=" << kappa << "，网格数" << 2 * x_num << "*" << 2 * y_num << "，CFLMax=" << CFLMax << endl;
     cout << "将计算至t=" << (save_max - 1) * save_interval << endl;
     cout << "即将开始计算" << endl;
@@ -59,8 +76,9 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
             E_init[i][j] = 0.5 * (pow(u_init[i][j], 2) + pow(v_init[i][j], 2) + 3 * p_init[i][j] / r_init[i][j]);
         }
     }
-    double* req_i = new double[N] {};
-    double* ueq_i = new double[N] {};
+    double* MFi = new double[2 * M * N]{};
+    double* req_i = new double[N] {};   // mode3不用
+    double* ueq_i = new double[N] {};   // mode3不用
     double sig2eq_i = 0;
     // I,J大区坐标
     for (int I = 0;I < 2;++I)
@@ -72,29 +90,35 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
             double rt = p_init[I][J] / r_init[I][J];
             double a[4] = { -1.5 * log(2 * M_PI * rt) - (u * u + v * v) / 2 / rt, u / rt, v / rt, -1 / rt };  // 分别为a, b1, b2, c
 
-            RedEquil_DVD(r_init[I][J], u_init[I][J], v_init[I][J], E_init[I][J],
-                a, req_i, ueq_i, &sig2eq_i);
-            double* MFi = new double[M * N];
-            double* sig2i = new double[N];
-            for (int n = 0;n < N;++n)
+            if (mode == 3)
             {
-                sig2i[n] = RedEquil_DVDDVM(req_i[n], ueq_i[n], 0.5 * (ueq_i[n] * ueq_i[n] + (L + 1) * sig2eq_i),
-                    &MFi[n * M]);
+                double sig2 = RedEquil_DVM(r_init[I][J], u_init[I][J], v_init[I][J], E_init[I][J],
+                    a, MFi);
+                for (int k = M * N - 1;k >= 0;--k)
+                {
+                    MFi[M * N + k] = MFi[k] * L * sig2;
+                }
             }
-
+            else if (mode == 4)
+            {
+                RedEquil_DVD(r_init[I][J], u_init[I][J], v_init[I][J], E_init[I][J],
+                    a, req_i, ueq_i, &sig2eq_i);
+                for (int n = 0;n < N;++n)
+                {
+                    double sig2 = RedEquil_DVDDVM(req_i[n], ueq_i[n], 0.5 * (ueq_i[n] * ueq_i[n] + (L + 1) * sig2eq_i),
+                        &MFi[n * M]);
+                    for (int m = 0;m < M;++m)
+                    {
+                        MFi[(N + n) * M + m] = MFi[n * M + m] * L * sig2;
+                    }
+                }
+            }
             for (int i = 0;i < x_num;++i)
             {
                 for (int j = 0;j < y_num;++j)
                 {
-                    for (int k = 0;k < 4;++k)
-                    {
-                        alpha(i + I * x_num, j + J * y_num, k) = a[k];
-                    }
-                    for (int k = M * N - 1;k >= 0;--k)
-                    {
-                        MF(i + I * x_num, j + J * y_num, 0, 0, k) = MFi[k];
-                        MF(i + I * x_num, j + J * y_num, 1, 0, k) = MFi[k] * L * sig2i[k / M];
-                    }
+                    memcpy(&alpha(i + I * x_num, j + J * y_num, 0), a, sizeof(double) * 4);
+                    memcpy(&MF(i + I * x_num, j + J * y_num, 0, 0, 0), MFi, sizeof(double) * 2 * M * N);
                     // 初始宏观量
                     macro(i + I * x_num, j + J * y_num, 0) = r_init[I][J];
                     macro(i + I * x_num, j + J * y_num, 1) = u_init[I][J];
@@ -107,10 +131,9 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
                     save_e(j + J * y_num, i + I * x_num) = E_init[I][J];
                 }
             }
-            delete[] MFi;
-            delete[] sig2i;
         }
     }
+    delete[] MFi;
     delete[] req_i;
     delete[] ueq_i;
 
@@ -122,7 +145,6 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
 
 #pragma endregion
 
-    //exit(0);
     cout << "初始值处理完毕，主循环开始" << endl;
 
 #pragma region 主循环
@@ -134,38 +156,8 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
         clock_1 = clock();
 
 #pragma region 第1步，确定时间步长
-        // 模仿之前的程序
-        double Umax = 0.;
-        double dvmmax = abs(dvm_bg);
-#pragma omp parallel for
-        for (int i = 0;i < 2 * x_num;++i)
-        {
-            for (int j = 0;j < 2 * y_num;++j)
-            {
-                double Uijmax = dvmmax
-                    + 1.2 * (macro(i, j, 3) - 0.5 * (pow(macro(i, j, 1), 2) + pow(macro(i, j, 2), 2)));
-                Umax = max(Umax, Uijmax);
-            }
-        }
-        // CFL确定时间步长，参考Fox08年文献
-        double dt;
-        if (flag_collide == 1)
-        {
-            if (kappa == 0)
-            {
-                dt = CFLMax * dx / max(Umax, 0.1);
-            }
-            else
-            {
-                dt = min(CFLMax * dx / max(Umax, 0.1), kappa / 10);
-            }
-        }
-        else
-        {
-            dt = CFLMax * dx / max(Umax, 0.1);
-        }
-        t_current += dt;    // 当前时刻
-        // cout << dt << endl;
+        // Guo: 可以无视\tau
+        double dt = CFLMax * min(dx, dy) / abs(dvm_bg);
 #pragma endregion
 
         clock_2 = clock();
@@ -175,29 +167,48 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
         if (flag_collide == 1)
         {
             int finish_count = 0;
-#pragma omp parallel for
-            for (int i = grid_num - 1; i >= 0;i--)
+            if (mode == 3)
             {
-                double* req = new double[N] {};
-                double* ueq = new double[N] {};
-                double sig2eq = 0;
-                RedEquil_DVD(macro(0, i, 0), macro(0, i, 1), macro(0, i, 2), macro(0, i, 3),
-                    &alpha(0, i, 0), req, ueq, &sig2eq);
-
-                for (int n = 0;n < N;++n)
+#pragma omp parallel for
+                for (int i = grid_num - 1; i >= 0;i--)
                 {
-                    double sig2 = RedEquil_DVDDVM(req[n], ueq[n], 0.5 * (ueq[n] * ueq[n] + (L + 1) * sig2eq),
-                        &Meq(0, i, 0, n, 0));
-                    for (int m = 0;m < M;++m)
+                    double sig2 = RedEquil_DVM(macro(0, i, 0), macro(0, i, 1), macro(0, i, 2), macro(0, i, 3),
+                        &alpha(0, i, 0), &Meq(0, i, 0, 0, 0));
+                    for (int j = M * N - 1;j >= 0;--j)
                     {
-                        Meq(0, i, 1, n, m) = L * sig2 * Meq(0, i, 0, n, m);
+                        Meq(0, i, 1, 0, j) = L * sig2 * Meq(0, i, 0, 0, j);
                     }
-                }
-                delete[] req;
-                delete[] ueq;
-                finish_count++;
+                    finish_count++;
 
-                printf("计算平衡态，已完成 %d / %d\r", finish_count, grid_num);
+                    printf("计算平衡态，已完成 %d / %d\r", finish_count, grid_num);
+                }
+            }
+            else if (mode == 4)
+            {
+#pragma omp parallel for
+                for (int i = grid_num - 1; i >= 0;i--)
+                {
+                    double* req = new double[N] {};
+                    double* ueq = new double[N] {};
+                    double sig2eq = 0;
+                    RedEquil_DVD(macro(0, i, 0), macro(0, i, 1), macro(0, i, 2), macro(0, i, 3),
+                        &alpha(0, i, 0), req, ueq, &sig2eq);
+
+                    for (int n = 0;n < N;++n)
+                    {
+                        double sig2 = RedEquil_DVDDVM(req[n], ueq[n], 0.5 * (ueq[n] * ueq[n] + (L + 1) * sig2eq),
+                            &Meq(0, i, 0, n, 0));
+                        for (int m = 0;m < M;++m)
+                        {
+                            Meq(0, i, 1, n, m) = L * sig2 * Meq(0, i, 0, n, m);
+                        }
+                    }
+                    delete[] req;
+                    delete[] ueq;
+                    finish_count++;
+
+                    printf("计算平衡态，已完成 %d / %d\r", finish_count, grid_num);
+                }
             }
         }
 #pragma endregion
@@ -206,7 +217,25 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
 
 #pragma region 第3步，复制
 
-        swapPtr(&MF.ptr, &MF_c.ptr);
+        if (flag_collide == 0 || kappa == 0)
+        {
+            swapPtr(&MF.ptr, &MF_c.ptr);
+        }
+        else
+        {
+            // 对于一般的情况MF存的其实是\tilde f，为了节约内存
+            // 这里要将MF变成当前时刻的\tilde f+，
+            // 而MF_c变成当前时刻的\bar f+，
+            // Guo 2013文章21,22式
+            double e1 = (2 * kappa - dt * 0.5) / (2 * kappa + dt);
+            double e2 = (1.5 * dt) / (2 * kappa + dt);
+#pragma omp parallel for
+            for (int i = 8 * x_num * y_num * M * N - 1;i >= 0;--i)
+            {
+                MF_c(0, 0, 0, 0, i) = e1 * MF(0, 0, 0, 0, i) + e2 * Meq(0, 0, 0, 0, i);
+                MF(0, 0, 0, 0, i) = 4.0 / 3.0 * MF_c(0, 0, 0, 0, i) - 1.0 / 3.0 * MF(0, 0, 0, 0, i);
+            }
+        }
 
 #pragma endregion
 
@@ -215,18 +244,19 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
 #pragma region 第4步，求解差分方程，更新双节点EQMOM参数，处理宏观量等
 
         // DUGKS格式
-        DUGKS_gh(2 * x_num, 2 * y_num, dt);
+        DUGKS_gh(2 * x_num, 2 * y_num, dt, mode);
 
 #pragma endregion
 
         clock_5 = clock();
+
         // 一次循环结束，输出当前时间
         cout << "第" << step_count + 1 << "步，" << "t=" << t_current
             << "，计算耗时" << (clock_5 - clock_1) / CLOCKS_PER_SEC << "秒"
             /* << "，算步长" << (clock_2 - clock_1) / CLOCKS_PER_SEC << "秒"
              << "，算平衡态" << (clock_3 - clock_2) / CLOCKS_PER_SEC << "秒"
              << "，算Flux" << (clock_4 - clock_3) / CLOCKS_PER_SEC << "秒"
-             << "，求差分方程等" << (clock_5 - clock_4) / CLOCKS_PER_SEC << "秒" */
+             << "，求差分方程等" << (clock_5 - clock_4) / CLOCKS_PER_SEC << "秒"*/
             << endl;
 
 #pragma region 看看是不是需要储存
@@ -257,7 +287,6 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
             Save_Count++;
         }
 #pragma endregion
-
     }
     clock_end = clock();
 #pragma endregion
@@ -272,6 +301,7 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting)
     ofstream outFile;
     outFile.open(foldername + "\\" + "setting.csv", ios::out); // 打开模式可省略
     outFile << "N," << N << endl;
+    outFile << "dvm_strategy," << dvm_strategy << endl;
     outFile << "dvm_bg," << dvm_bg << endl;
     outFile << "dvm_st," << dvm_st << endl;
     outFile << "dx," << dx << endl;

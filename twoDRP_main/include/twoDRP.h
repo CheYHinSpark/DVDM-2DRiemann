@@ -21,5 +21,4 @@ void twoDRP_EQMOM(string init_setting, string compute_setting);
 void twoDRP_DVDDVM(string init_setting, string compute_setting);
 void twoDRP_DVM(string init_setting, string compute_setting);
 
-void twoDRP_DVDDVM_gh(string init_setting, string compute_setting);
-void twoDRP_DVM_gh(string init_setting, string compute_setting);
+void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode);

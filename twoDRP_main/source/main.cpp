@@ -6,7 +6,7 @@
 
 #include "../include/twoDRP.h"
 
-const string VERSION_NAME = "22.03.15";
+const string VERSION_NAME = "22.03.19";
 
 using namespace std;
 int main(int argc, char* argv[])
@@ -48,6 +48,7 @@ int main(int argc, char* argv[])
 
     MF.~CArray();       //前一时刻数据(x，y，方向，dvm)
     MF_c.~CArray();     //复制数据(x，y，方向，dvm)
+    MF_m.~CArray();     //DUGKS专用的中间态数据(x，y，方向，dvm)
     Meq.~CArray();      //平衡态
     macro.~CArray();    //宏观量(x，y，（rho,u,v,e）)
 
@@ -114,8 +115,8 @@ int main(int argc, char* argv[])
 
     if (mode == "1") { twoDRP_DVM(init_setting, compute_setting); }
     else if (mode == "2") { twoDRP_DVDDVM(init_setting, compute_setting); }
-    else if (mode == "3") { twoDRP_DVM_gh(init_setting, compute_setting); }
-    else if (mode == "4") { twoDRP_DVDDVM_gh(init_setting, compute_setting); }
+    else if (mode == "3") { twoDRP_DVDDVM_gh(init_setting, compute_setting, 3); }
+    else if (mode == "4") { twoDRP_DVDDVM_gh(init_setting, compute_setting, 4); }
     else { twoDRP_EQMOM(init_setting, compute_setting); }
 
     cout << "程序运行完毕，按任意键继续……";

@@ -69,6 +69,7 @@ extern int Save_Count = 1;
 // 计算用大数组
 extern CArray MF(1, 1);       //前一时刻数据(x，y，方向，dvm)
 extern CArray MF_c(1, 1);     //复制数据(x，y，方向，dvm)
+extern CArray MF_m(1, 1);     //DUGKS专用的中间态数据(x，y，方向，dvm)
 extern CArray Meq(1, 1);      //平衡态
 extern CArray macro(1, 1);    //宏观量(x，y，（rho,u,v,e）)
 
