@@ -78,14 +78,14 @@ void SetDVM()
     if (dvm_strategy == "common-difference")
     {
         M = 0;
-        dvm_bg = -abs(dvm_bg);
-        for (double db = dvm_bg;db <= abs(dvm_bg) + 1e-10;db += dvm_st) { ++M; }
+        double bg = -abs(dvm_bg);
+        for (double db = bg;db <= abs(bg) + 1e-10;db += dvm_st) { ++M; }
         delete[] dvm;
         dvm = new double[M];
         for (int m = 0;m < M;++m)
         {
-            dvm[m] = dvm_bg;
-            dvm_bg += dvm_st;
+            dvm[m] = bg;
+            bg += dvm_st;
         }
     }
     else if (dvm_strategy == "sqrt-central")

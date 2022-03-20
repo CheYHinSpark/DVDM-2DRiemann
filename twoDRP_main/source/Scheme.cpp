@@ -676,7 +676,7 @@ void DUGKS_gh(int X, int Y, double dt, double mode)
                 delete[] req_m;
 
                 finish_count++;
-                printf("计算平衡态，已完成 %d / %d\r", finish_count, grid_num);
+                printf("计算中间平衡态X，已完成 %d / %d    \r", finish_count, grid_num);
             }
         }
         // 把这些东西全部加入MF
@@ -797,7 +797,7 @@ void DUGKS_gh(int X, int Y, double dt, double mode)
                 delete[] req_m;
 
                 finish_count++;
-                printf("计算平衡态，已完成 %d / %d\r", finish_count, grid_num);
+                printf("计算中间平衡态Y，已完成 %d / %d    \r", finish_count, grid_num);
             }
         }
         // 把这些东西全部加入MF
@@ -811,6 +811,20 @@ void DUGKS_gh(int X, int Y, double dt, double mode)
                     MF(i, j, 0, 0, k) -= (dt / dx) * uk[k % (M * N)]
                         * (MF_m(i + 1, j, 0, 0, k) - MF_m(i, j, 0, 0, k));
                 }
+
+                for (int k = M * N - 1;k >= 0;--k)
+                {
+                    // 计算下一时刻的宏观量
+                    macro(i, j, 0) += MF(i, j, 0, 0, k);        // rho
+                    macro(i, j, 1) += MF(i, j, 0, 0, k) * uk[k];// rho u
+                    macro(i, j, 2) += MF(i, j, 0, 0, k) * vk[k];// rho v
+                    macro(i, j, 3) += (MF(i, j, 0, 0, k) * U2k[k]
+                        + MF(i, j, 1, 0, k)) * 0.5;             // rho E
+                }
+
+                macro(i, j, 1) /= macro(i, j, 0);           // u
+                macro(i, j, 2) /= macro(i, j, 0);           // v
+                macro(i, j, 3) /= macro(i, j, 0);           // E
             }
         }
 #pragma endregion

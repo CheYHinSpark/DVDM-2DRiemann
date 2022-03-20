@@ -6,7 +6,7 @@
 
 #include "../include/twoDRP.h"
 
-const string VERSION_NAME = "22.03.19";
+const string VERSION_NAME = "22.03.20";
 
 using namespace std;
 int main(int argc, char* argv[])
@@ -113,8 +113,8 @@ int main(int argc, char* argv[])
         cin >> mode;
     }
 
-    if (mode == "1") { twoDRP_DVM(init_setting, compute_setting); }
-    else if (mode == "2") { twoDRP_DVDDVM(init_setting, compute_setting); }
+    if (mode == "1") { twoDRP_DVDDVM(init_setting, compute_setting, 1); }
+    else if (mode == "2") { twoDRP_DVDDVM(init_setting, compute_setting, 2); }
     else if (mode == "3") { twoDRP_DVDDVM_gh(init_setting, compute_setting, 3); }
     else if (mode == "4") { twoDRP_DVDDVM_gh(init_setting, compute_setting, 4); }
     else { twoDRP_EQMOM(init_setting, compute_setting); }

@@ -158,6 +158,7 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
 #pragma region 第1步，确定时间步长
         // Guo: 可以无视\tau
         double dt = CFLMax * min(dx, dy) / abs(dvm_bg);
+        t_current += dt;
 #pragma endregion
 
         clock_2 = clock();
@@ -207,7 +208,7 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
                     delete[] ueq;
                     finish_count++;
 
-                    printf("计算平衡态，已完成 %d / %d\r", finish_count, grid_num);
+                    printf("计算平衡态，已完成 %d / %d    \r", finish_count, grid_num);
                 }
             }
         }

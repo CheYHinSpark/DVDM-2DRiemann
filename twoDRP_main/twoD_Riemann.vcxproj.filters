@@ -48,9 +48,6 @@
     <ClCompile Include="source\twoDRP_DVDDVM.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="source\twoDRP_DVM.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="source\twoDRP_DVDDVM_gh.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
