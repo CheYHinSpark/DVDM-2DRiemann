@@ -6,7 +6,9 @@ void DUGKS(int X, int Y, double dt);
 
 void DUGKS_gh(int X, int Y, double dt, double mode);
 
-double DUGKS_5_vnLr(double fl, double fc, double fr, double fd, double fu,
+void LBGK_gh(int X, int Y, double dt);
+
+double Interpol_5_vnLr(double fl, double fc, double fr, double fd, double fu,
     double r, double s);
 
 double DUGKS_9_interpol(double fmm, double fm0, double fmp,

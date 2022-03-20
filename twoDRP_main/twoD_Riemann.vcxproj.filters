@@ -54,6 +54,9 @@
     <ClCompile Include="source\twoDRP_EQMOM.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="source\Scheme_gh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\2DRPFunctions.h">

@@ -40,7 +40,7 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
     Meq.reConstruct(2 * x_num, 2 * y_num, 2, N, M);     //平衡态
     CArray alpha(2 * x_num, 2 * y_num, 4);              //平衡态参数
     macro.reConstruct(2 * x_num, 2 * y_num, 4);         //宏观量
-    if (flag_collide == 1 && kappa != 0)
+    if (flag_collide == 1 && kappa != 0 && SCHEME == "DUGKS")
     {
         MF_m.reConstruct(2 * x_num + 1, 2 * y_num + 1, 2, N, M);
     }
@@ -222,7 +222,7 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
         {
             swapPtr(&MF.ptr, &MF_c.ptr);
         }
-        else
+        else if (SCHEME == "DUGKS")
         {
             // 对于一般的情况MF存的其实是\tilde f，为了节约内存
             // 这里要将MF变成当前时刻的\tilde f+，
@@ -237,6 +237,17 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
                 MF(0, 0, 0, 0, i) = 4.0 / 3.0 * MF_c(0, 0, 0, 0, i) - 1.0 / 3.0 * MF(0, 0, 0, 0, i);
             }
         }
+        else if (SCHEME == "LBGK")
+        {
+            // LBGK格式，MF储存的其实是\tilde f，需要转化为\tilde f+
+            double e1 = (2 * kappa - dt) / (2 * kappa + dt);
+            double e2 = (2 * dt) / (2 * kappa + dt);
+#pragma omp parallel for
+            for (int i = 8 * x_num * y_num * M * N - 1;i >= 0;--i)
+            {
+                MF_c(0, 0, 0, 0, i) = e1 * MF(0, 0, 0, 0, i) + e2 * Meq(0, 0, 0, 0, i);
+            }
+        }
 
 #pragma endregion
 
@@ -244,8 +255,15 @@ void twoDRP_DVDDVM_gh(string init_setting, string compute_setting, int mode)
 
 #pragma region 第4步，求解差分方程，更新双节点EQMOM参数，处理宏观量等
 
-        // DUGKS格式
-        DUGKS_gh(2 * x_num, 2 * y_num, dt, mode);
+        if (SCHEME == "DUGKS")
+        {
+            // DUGKS格式
+            DUGKS_gh(2 * x_num, 2 * y_num, dt, mode);
+        }
+        else if (SCHEME == "LBGK")
+        {
+            // LBGK格式
+        }
 
 #pragma endregion
 

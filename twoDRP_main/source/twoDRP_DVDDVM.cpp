@@ -40,6 +40,10 @@ void twoDRP_DVDDVM(string init_setting, string compute_setting, int mode)
     Meq.reConstruct(2 * x_num, 2 * y_num, N, M);    //平衡态
     CArray alpha(2 * x_num, 2 * y_num, 4);          //平衡态参数
     macro.reConstruct(2 * x_num, 2 * y_num, 4);     //宏观量
+    if (flag_collide == 1 && kappa != 0 && SCHEME == "DUGKS")
+    {
+        MF_m.reConstruct(2 * x_num + 1, 2 * y_num + 1, N, M);
+    }
 
     // 保存用的
     double* save_t = new double[save_max] {};
@@ -215,6 +219,7 @@ void twoDRP_DVDDVM(string init_setting, string compute_setting, int mode)
         if (SCHEME == "wind-up") { D_wind_up(2 * x_num, 2 * y_num, dt); }
         // DUGKS格式
         if (SCHEME == "DUGKS") { DUGKS(2 * x_num, 2 * y_num, dt); }
+        // TODO 更新DUGKS格式
 
 #pragma endregion
 

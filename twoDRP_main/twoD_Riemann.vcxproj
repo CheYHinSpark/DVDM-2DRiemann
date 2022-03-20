@@ -171,6 +171,7 @@
     <ClCompile Include="source\RedEquil_DVDDVM.cpp" />
     <ClCompile Include="source\RedEquil_DVM.cpp" />
     <ClCompile Include="source\Scheme.cpp" />
+    <ClCompile Include="source\Scheme_gh.cpp" />
     <ClCompile Include="source\settings.cpp" />
     <ClCompile Include="source\twoDRP_DVDDVM.cpp" />
     <ClCompile Include="source\twoDRP_DVDDVM_gh.cpp" />
